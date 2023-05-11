@@ -1,0 +1,10 @@
+apiVersion: sqs.services.k8s.aws/v1alpha1
+kind: Queue
+metadata:
+  namespace: services
+  name: sqs-orders
+spec:
+  queueName: orders
+  tags:
+    env: mvp-demo
+    project: demo-app

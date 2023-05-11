@@ -1,0 +1,27 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: aws-sqs-reader
+  namespace: services
+rules:
+- apiGroups:
+  - sqs.services.k8s.aws
+  resources:
+  - queues
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: primaza-svc-agent-aws-rds-reader
+  namespace: services
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: aws-sqs-reader
+subjects:
+- kind: ServiceAccount
+  name: primaza-svc-agent
+
