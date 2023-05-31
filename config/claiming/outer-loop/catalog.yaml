@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app-catalog
+  namespace: demo-app
+  labels:
+    app: demo-app-catalog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-app-catalog
+  template:
+    metadata:
+      labels:
+        app: demo-app-catalog
+    spec:
+      initContainers:
+      - name: demo-app-catalog-init
+        image: demo-app/catalog-init:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SERVICE_BINDING_ROOT
+          value: /bindings
+        - name: RDS_PROVIDER
+          value: demo-app-catalog-rds
+        - name: AWS_PROVIDER
+          value: demo-app-catalog-sqs
+        - name: SQS_PROVIDER
+          value: demo-app-catalog-sqs
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+      containers:
+      - name: demo-app-catalog
+        image: demo-app/catalog:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SERVICE_BINDING_ROOT
+          value: /bindings
+        - name: RDS_PROVIDER
+          value: demo-app-catalog-rds
+        - name: AWS_PROVIDER
+          value: demo-app-catalog-sqs
+        - name: SQS_PROVIDER
+          value: demo-app-catalog-sqs
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-app-catalog
+  namespace: demo-app
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: demo-app-catalog
