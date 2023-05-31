@@ -1,8 +1,9 @@
 # Topology and Personas
 
-KaaS creates a Tenant for each isolated environment a customer asks for.
-Two Tenants would not share information among them.
-They usually configure a Tenant to be spread across two different clusters, called for simplicity `main` and `worker`.
+TimberFire creates a Primaza Tenant for each isolated environment a customer asks for.
+Two Primaza Tenants would not share information among them.
+<br/>
+TimberFire usually configure a Tenant to be spread across two different clusters, called for simplicity `main` and `worker`.
 
 Practically, they provide a default configuration composed by three namespaces:
 

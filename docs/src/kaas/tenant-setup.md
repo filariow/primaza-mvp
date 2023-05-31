@@ -5,6 +5,8 @@ When *Sapiens* is successfully on-boarded, a pipeline is run for creating and se
 The Automation makes use of [primazactl](https://github.com/primaza/primazactl) for creating the new Tenant.
 `primazactl` is a command line tool, developed for making the Tenant management as easy as possible.
 
+![image](../imgs/single-tenant-view.png)
+
 <details><summary>Demo Output</summary><p>
 
 <pre><code><span style="color: #8fa77f">❯ ./bin/main --env-setup</span>
