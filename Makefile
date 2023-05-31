@@ -12,21 +12,21 @@ binfolder:
 build: binfolder
 	@go build -o ./bin/main cmd/main.go
 
-.PHONY: mc-env
-mc-env: build primazactl
-	@./bin/main -0 -a
+.PHONY: run-env-setup
+run-env-setup: build primazactl
+	./bin/main --env-setup -a -t 3s -i
 
-.PHONY: manual-reg
-manual-reg: build
-	@./bin/main -1 -a
+.PHONY: run-manual-registration
+run-manual-registration: build
+	./bin/main --manual-registration-rds
 
-.PHONY: discovery
-discovery: build
-	@./bin/main -2 -a
+.PHONY: run-discovery-sqs
+run-discovery-sqs: build
+	@./bin/main --discovery-sqs
 
-.PHONY: aws-service-catalog
-aws-service-catalog: build
-	@./bin/main -3 -a
+.PHONY: run-aws-service-catalog
+run-aws-service-catalog: build
+	@./bin/main --aws-service-catalog -i
 
 .PHONY: local-manifests
 local-manifests:

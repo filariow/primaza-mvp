@@ -29,7 +29,7 @@ AWS_RDS_DB_ENGINE="postgres"
 
 ## ARGOCD
 ARGOCD_NAMESPACE="$APPLICATION_NAMESPACE"
-ARGOCD_WATCHED_REPO="https://github.com/filariow/primaza-mvp-config.git"
+ARGOCD_WATCHED_REPO="https://github.com/filariow/primaza-mvp.git"
 ARGOCD_WATCHED_REPO_FOLDER="config/claiming/outer-loop"
 ARGOCD_VERSION="v2.7.3"
 
