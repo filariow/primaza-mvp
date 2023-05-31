@@ -1,6 +1,11 @@
 # Services
 
-In the following we are going to:
-* [Manually Register a Service](./manual-registration.md)
-* [Configure Primaza to Discover Services](./discovery.md)
-* [Integrate Primaza with 3rd Party Service Provider (AWS)](./3rd-party-integration.md)
+`CUSTOMER_NAME` wants their Application Developer to publish their simple e-commerce webapp:
+
+![image](../../imgs/demo-app-architecture.png)
+
+So the Service Administrator is asked to provision the following services:
+
+* An AWS RDS DBInstance
+* An SQS Queue
+* A DynamoDB that sends its events via DynamoStreams and a Lambda function to the SQS Queue

@@ -1,6 +1,6 @@
 # Intro
 
-TimberFire Technologies is a Software Platform as a Service provider.
+**TimberFire Technologies** is a Software Platform as a Service provider.
 They will like to incorporate Kubernetes as a Service (KaaS) solutions for their customers.
 For this purpose, they have brought in Red Hat to help determine the technology stack.
 They have worked with Red Hat before and have been exposed to OpenShift.

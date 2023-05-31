@@ -1,11 +1,11 @@
 # Service Administrator: 3rd party integration
 
 
-Then the Service Administrator is asked for configuring the Primaza 3rd-party integration with AWS Service Catalog already configured by the team.
+For the DynamoDB instance as it is a more complex infrastructure the Service Administrator would like to rely on CloudFormation templates and the AWS Service Catalog.
+They already has a AWS Service Catalog configured and he created the Product for the DynamoDB, DynamoStreams and Lambda.
+
+Also, they has configured an integration with Primaza.
+The integration is make by a Simple Notification Service (SNS) that forwards AWS Service Catalog events to a Lambda function.
+The Lambda then uses the event to create a Registered Service into Primaza's Tenant.
 
 ![image](../../imgs/aws-service-catalog.png)
-
-The integration mechanism relies on AWS Service Catalog's event published on an SNS topic and processed by a custom Lambda function.
-The Lambda function processes the event and creates/updates/deletes the RegisteredService in Primaza Control Plane.
-
-Finally, the Service Administrator is asked to deploy a Product from the AWS Service Catalog.

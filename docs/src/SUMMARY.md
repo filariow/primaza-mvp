@@ -1,6 +1,6 @@
      Summary
 
-- [KaaS Company](./kaas/intro.md)
+- [Timberfire Technologies](./kaas/intro.md)
     - [Topology and Personas](./kaas/topology-and-personas.md)
     - [Tenant Setup](./kaas/tenant-setup.md)
     - [Services](./kaas/services/intro.md)

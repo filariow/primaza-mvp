@@ -1,6 +1,6 @@
 # Primaza Multi Cluster Environment Setup
 
-When a customer is successfully on-boarded, a pipeline is run for creating and setting up their tenant.
+When `CUSTOMER_NAME` is successfully on-boarded, a pipeline is run for creating and setting up their tenant.
 
 The Automation makes use of [primazactl](https://github.com/primaza/primazactl) for creating the new Tenant.
 `primazactl` is a command line tool, developed for making the Tenant management as easy as possible.

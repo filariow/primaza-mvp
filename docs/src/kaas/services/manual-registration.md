@@ -1,5 +1,6 @@
 # Service Administrator: Manual registration
 
-Tenant Administrators are in charge of managing the whole tenant and can configure tenant-wide discovery and claiming.
+The Service Administrator knows that he had already deployed an unused RDS Postgres Database.
+He think he may allow the Application Developer to use this unused database.
 
-The `CUSTOMER_NAME` Service Administrator has been asked to register an already existing service on AWS: an RDS Postgres Database.
+As he got all the information needed by the Application Developer to connect to the database, he manually creates a RegisteredService for the RDS Database.

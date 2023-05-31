@@ -1,5 +1,5 @@
 # Service Administrator: Service Discovery
 
-Service Administrators are in charge of service provisioning and discovery in Service Namespaces.
+For provisioning and managing the SQS Queue, the Service Administrator wants to use the *AWS Controllers for Kubernetes (ACK)* he already installed in the Service Namespace.
 
-In the meantime, the `CUSTOMER_NAME` Service Administrator is asked to provision using ACK an SQS Queue and discover it.
+Then, the Service Administrator will rely on the Primaza's Discovery mechanism to discover the SQS Queue and create automatically the RegisteredService.
