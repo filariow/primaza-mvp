@@ -1,3 +1,0 @@
-[submodule "demo-app"]
-	path = demo-app
-	url = git@github.com:primaza/demo-app.git

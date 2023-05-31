@@ -38,11 +38,26 @@ ARGOCD_VERSION="v2.7.3"
 
 build_and_load_demo_app_images()
 (
-    cd demo-app
+    docker tag ghcr.io/primaza/demo-app/frontend:{latest,latestknown} || true
+    docker tag ghcr.io/primaza/demo-app/catalog:{latest,latestknown} || true
+    docker tag ghcr.io/primaza/demo-app/catalog-init:{latest,latestknown} || true
+    docker tag ghcr.io/primaza/demo-app/orders:{latest,latestknown} || true
+    docker tag ghcr.io/primaza/demo-app/orders-init:{latest,latestknown} || true
 
-    REPOSITORY_REF=demo-app make docker-build-all -o docker-build-orders-events-consumer
+    docker rmi ghcr.io/primaza/demo-app/frontend:latest || true
+    docker rmi ghcr.io/primaza/demo-app/catalog:latest || true
+    docker rmi ghcr.io/primaza/demo-app/catalog-init:latest || true
+    docker rmi ghcr.io/primaza/demo-app/orders:latest || true
+    docker rmi ghcr.io/primaza/demo-app/orders-init:latest || true
+
+    docker pull ghcr.io/primaza/demo-app/frontend:latest
+    docker pull ghcr.io/primaza/demo-app/catalog:latest
+    docker pull ghcr.io/primaza/demo-app/catalog-init:latest
+    docker pull ghcr.io/primaza/demo-app/orders:latest
+    docker pull ghcr.io/primaza/demo-app/orders-init:latest
+
     kind load docker-image --name "$CLUSTER_WORKER" \
-        demo-app/{frontend,catalog,catalog-init,orders,orders-init}:latest
+        ghcr.io/primaza/demo-app/{frontend,catalog,catalog-init,orders,orders-init}:latest
 )
 
 check_dependencies()
