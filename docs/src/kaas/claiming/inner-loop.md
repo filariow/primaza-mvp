@@ -1,6 +1,6 @@
 # Inner Loop
 
-Application Developer for `CUSTOMER_NAME` is responsible for the Catalog microservice.
+Application Developer for *Sapiens* is responsible for the Catalog microservice.
 He asks the Tenant Administrator to setup the `demo-app` in their Application Namespace.
 
 

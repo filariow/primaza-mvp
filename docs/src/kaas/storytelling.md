@@ -7,8 +7,8 @@ KaaS company's main business is to provide compute power to developers.
 It relies on Kubernetes for orchestrating workloads.
 They use Primaza for handling customer tenants and to provide easy service discovery and binding.
 
-A new customer `CUSTOMER_NAME` wants to use their service.
-After an account is created a tenant is set up by KaaS company for `CUSTOMER_NAME`.
+A new customer *Sapiens* wants to use their service.
+After an account is created a tenant is set up by KaaS company for *Sapiens*.
 
 
 ## Topology and Personas
@@ -55,7 +55,7 @@ Run Demo 0: Multi Cluster environment setup
 
 Tenant Administrators are in charge of managing the whole tenant and can configure tenant-wide discovery and claiming.
 
-The `CUSTOMER_NAME` Tenant Administrator has been asked to register an already existing service on AWS: an SQS Queue.
+The *Sapiens* Tenant Administrator has been asked to register an already existing service on AWS: an SQS Queue.
 
 ```
 Run Demo 1: Manual Registration of a Service
@@ -68,7 +68,7 @@ Run Demo 1: Manual Registration of a Service
 
 Service Administrators are in charge of service provisioning and discovery in Service Namespaces.
 
-In the meantime, the `CUSTOMER_NAME` Service Administrator is asked to provision using ACK an RDS database and discover it.
+In the meantime, the *Sapiens* Service Administrator is asked to provision using ACK an RDS database and discover it.
 
 ```
 Run Demo 2: Service Discovery
@@ -106,7 +106,7 @@ Spin up ArgoCD as an Application Developer and publish the demo-app.
 
 ### Outer Loop
 
-Application Developer for `CUSTOMER_NAME` is responsible for the whole `demo-app` application.
+Application Developer for *Sapiens* is responsible for the whole `demo-app` application.
 They use the ArgoCD instance KaaS is providing by default in the Application Namespace.
 
 ```
@@ -116,7 +116,7 @@ Open ArgoCD Dashboard and Run Demo
 
 ### Inner Loop
 
-Application Developer for `CUSTOMER_NAME` is responsible for the Catalog microservice.
+Application Developer for *Sapiens* is responsible for the Catalog microservice.
 He asks the Tenant Administrator to setup the `demo-app` in their Application Namespace.
 
 

@@ -1,6 +1,6 @@
-# Outer Loop: Application Developer publishes the demo app
+# Application Developer: Publish the application (Outer Loop)
 
-The `CUSTOMER_NAME` Application Developer is responsible for the whole `demo-app` application.
+The *Sapiens* Application Developer is responsible for the whole `demo-app` application.
 
 ![image](../../imgs/demo-app-architecture.png)
 

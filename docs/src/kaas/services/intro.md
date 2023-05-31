@@ -1,6 +1,6 @@
 # Services
 
-`CUSTOMER_NAME` wants their Application Developer to publish their simple e-commerce webapp:
+*Sapiens* wants their Application Developer to publish their simple e-commerce webapp:
 
 ![image](../../imgs/demo-app-architecture.png)
 
