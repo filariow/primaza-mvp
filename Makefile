@@ -22,11 +22,11 @@ run-manual-registration: build
 
 .PHONY: run-discovery-sqs
 run-discovery-sqs: build
-	@./bin/main --discovery-sqs
+	./bin/main --discovery-sqs
 
 .PHONY: run-aws-service-catalog
 run-aws-service-catalog: build
-	@./bin/main --aws-service-catalog -i
+	./bin/main --aws-service-catalog -i
 
 .PHONY: local-manifests
 local-manifests:
@@ -48,7 +48,7 @@ SKIP_BITWARDEN ?= false
 SKIP_AWS ?= false
 
 .PHONY: setup
-setup:
+setup: build primazactl
 	SKIP_BITWARDEN=$(SKIP_BITWARDEN) SKIP_AWS=$(SKIP_AWS) ./hack/setup.sh
 
 .PHONY: clean

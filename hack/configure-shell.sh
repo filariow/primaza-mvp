@@ -1,5 +1,7 @@
+#!/bin/bash
+
 AWS_RDS_DB_PASSWORD_FILE=/tmp/primaza-mv-demo-aws-rds-password
-[ ! -s "$AWS_RDS_DB_PASSWORD_FILES" ] && bw generate > "$AWS_RDS_DB_PASSWORD_FILE"
+[ -s "$AWS_RDS_DB_PASSWORD_FILE" ] || bw generate > "$AWS_RDS_DB_PASSWORD_FILE"
 
 export AWS_RDS_DB_PASSWORD=$(cat "$AWS_RDS_DB_PASSWORD_FILE")
 export KUBECONFIG=/tmp/kc-mvp-primaza
