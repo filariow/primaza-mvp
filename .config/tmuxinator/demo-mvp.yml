@@ -52,12 +52,12 @@ windows:
       # synchronize: after
       panes:
         - vim --cmd 'let NERDTreeShowHidden=1 | let Tlist_Auto_Open=1' .
-        - source ./hack/configure-shell.sh; clear
+        - read -s -n 1 key; source ./hack/configure-shell.sh; clear
   - tenant-setup:
       layout: 18a0,213x56,0,0{114x56,0,0,18,98x56,115,0[98x28,115,0,23,98x13,115,29,24,98x13,115,43,25]}
       panes:
         - export KUBECONFIG=/tmp/kc-mvp-primaza; read -s -n 1 key; make run-env-setup
-        - watch "bash -c 'kubectl get pods --context kind-main --namespace primaza-mytenant --kubeconfig /tmp/kc-mvp-primaza; kubectl get clusterenvironments --context kind-main --namespace primaza-mytenant --kubeconfig /tmp/kc-mvp-primaza demo -o yaml 2> /dev/null'"; clear
+        - watch "bash -c 'kubectl get pods --context kind-main --namespace primaza-mytenant --kubeconfig /tmp/kc-mvp-primaza && kubectl get clusterenvironments --context kind-main --namespace primaza-mytenant --kubeconfig /tmp/kc-mvp-primaza worker -o yaml 2> /dev/null'"; clear
         - watch kubectl get pod --context kind-worker --namespace applications --kubeconfig /tmp/kc-mvp-primaza
         - watch kubectl get pod --context kind-worker --namespace services --kubeconfig /tmp/kc-mvp-primaza
   - manual:
@@ -89,7 +89,7 @@ windows:
         - watch kubectl get secrets --context kind-main --namespace primaza-mytenant --kubeconfig /tmp/kc-mvp-primaza
   - wrap-up:
       panes:
-        - read -s -n 1 key; kubectl get servicecatalogs --context kind-worker --namespace primaza-mytenant --kubeconfig /tmp/kc-mvp-primaza demo -o yaml
+        - read -s -n 1 key; kubectl get servicecatalogs --context kind-main --namespace primaza-mytenant --kubeconfig /tmp/kc-mvp-primaza demo -o yaml
   - debug:
       panes:
         - export KUBECONFIG=/tmp/kc-mvp-primaza; clear; 
