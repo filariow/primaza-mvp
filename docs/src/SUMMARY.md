@@ -1,7 +1,10 @@
      Summary
 
-- [Timberfire Technologies](./kaas/intro.md)
-    - [Topology and Personas](./kaas/topology-and-personas.md)
+- [Timberfire Technologies](./kaas/case-study.md)
+    - [Proof of Concept](./kaas/redhat-poc.md)
+    - [Tenants](./kaas/tenants.md)
+    - [Personas](./kaas/personas.md)
+    - [Environments](./kaas/environments.md)
     - [Tenant Setup](./kaas/tenant-setup.md)
     - [Services](./kaas/services/intro.md)
         - [Manual Registration](./kaas/services/manual-registration.md)

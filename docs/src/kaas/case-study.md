@@ -21,7 +21,3 @@ It is important that each customer's test environment can be provisioned and con
 After analysing TimberFire’s requirements, Red Hat has determined that a Pipeline using OpenShift will be a good baseline for TimberFire KaaS offering.
 In addition to OpenShift, Red Hat has determined that given their cloud service requirements, a new product, currently under development, called **Primaza** is a good candidate to be evaluated by TimberFire.
 
-TimberFire will like to work on a PoC with Red Hat and one of their customers: **Sapiens Inc.**
-<br/>
-Sapiens is building an online retail application that specifically requires a NoSQL database, a PostgreSQL Database and a Queue.
-Before the PoC work starts Red Hat will like to show TimberFire and Sapiens Engineering Leadership a Demo of their Primaza v0.1 release to gauge whether there are any missing requirements that can be addressed in parallel while the PoC is being run.
