@@ -1,5 +1,5 @@
 .PHONY: all
-all: setup build
+all: setup
 	@./bin/main -0 -a -t 0 -i
 	@./bin/main -1 -a -t 0 -i
 	@./bin/main -2 -a -t 0 -i

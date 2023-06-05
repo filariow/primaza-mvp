@@ -33,8 +33,13 @@ ARGOCD_WATCHED_REPO="https://github.com/filariow/primaza-mvp.git"
 ARGOCD_WATCHED_REPO_FOLDER="config/claiming/outer-loop"
 ARGOCD_VERSION="v2.7.3"
 
+## NGROK
+NGROK_BASE_CONFIG_PATH="$HOME/.config/ngrok/ngrok.yml"
+
+
 [ -z "$SKIP_BITWARDEN" ] && SKIP_BITWARDEN="false"
 [ -z "$SKIP_AWS" ] && SKIP_AWS="false"
+
 
 build_and_load_demo_app_images()
 (
@@ -374,16 +379,17 @@ main()
     create_worker_cluster "$CLUSTER_WORKER" "$KUBECONFIG" "$CLUSTER_WORKER_CONTEXT"
     wait_rollouts
 
+    printf "tunneling with ngrok"
+    ngrok start --all --config hack/ngrok.yml --config "$NGROK_BASE_CONFIG_PATH" &> /dev/null &
+
     # Configure AWS to local cluster communication
     [ "$SKIP_AWS" = "false" ] && {
         port=8001
         kubectl proxy --disable-filter=true --port="$port" --kubeconfig "$KUBECONFIG" --context "$CLUSTER_MAIN_CONTEXT" &
 
-        printf "tunneling port %d" "$port"
-        ngrok http "$port" > /dev/null &
         pub_url="null"
         until [ "$pub_url" != "null" ] && [ "$pub_url" != "" ]; do
-            pub_url=$( curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url' | sed 's/https:\/\///' )
+            pub_url=$( curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.name == "main") | .public_url' | sed 's/https:\/\///' )
             sleep 1
         done
 
@@ -400,11 +406,13 @@ main()
         --kubeconfig "$KUBECONFIG" | head -n 1)
 
     [ "$SKIP_BITWARDEN" = "false" ] && {
+        argocd_uri=$( curl -s http://localhost:4040/api/tunnels | jq '.tunnels[] | select(.name == "worker") | .public_url' -r )
         argocd_sec=$( bw get item argocd --session "$BW_SESSION" )
         argocd_sec_id=$( echo "$argocd_sec" | jq -r '.id' )
         [ -n "$argocd_sec_id" ] && \
                 echo "$argocd_sec" | \
                     jq --arg v "$argocd_password" '.login.password=$v' | \
+                    jq --arg v "$argocd_uri" '.login.uris[1].uri=$v' | \
                     bw encode | \
                     bw edit item "$argocd_sec_id" --session "$BW_SESSION"
     }
@@ -416,6 +424,14 @@ main()
         --context "$CLUSTER_WORKER_CONTEXT" \
         --namespace "$ARGOCD_NAMESPACE" \
         --kubeconfig "$KUBECONFIG" &> /dev/null &
+
+    worker_port=8002
+    printf "Exposing Worker's Kubernetes API Server at localhost:%s" "$worker_port"
+    kubectl proxy --disable-filter=true --port="$worker_port" --kubeconfig "$KUBECONFIG" --context "$CLUSTER_MAIN_CONTEXT" &> /dev/null &
+
+    printf "Exposed services"
+    curl -s http://localhost:4040/api/tunnels | \
+        jq '["NAME","PUBLIC URL"], ["------","------------------------------"], (.tunnels[] | [ .name, .public_url ]) | @tsv' -r
 }
 
 main

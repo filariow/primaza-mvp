@@ -1,0 +1,15 @@
+version: "2"
+tunnels:
+  argocd:
+    addr: https://localhost:8080
+    proto: http
+  eshop:
+    addr: 80
+    proto: http
+    hostname: primaza-mvp.ngrok.dev
+  main:
+    addr: 8001
+    proto: http
+  worker:
+    addr: 8002
+    proto: http
