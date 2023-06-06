@@ -232,6 +232,18 @@ data:
           hs = {}
           hs.status = "Healthy"
           return hs
+    primaza.io/ServiceClaim:
+        health.lua: |
+          hs = {}
+          if obj.status ~= nil then
+            if obj.status.state == "Resolved" then
+              hs.status = "Healthy"
+              hs.message = "Bound RegisteredService: " .. obj.status.registeredService
+            else
+              hs.status = "Progressing"
+            end
+          end
+          return hs
 EOF
         ) \
         --namespace "$ARGOCD_NAMESPACE" \
@@ -348,6 +360,18 @@ create_aws_rds()
     fi
 }
 
+bake_external_kubeconfig()
+{
+    cluster=$1
+    filepath="/tmp/kc-mvp-primaza-external-$1"
+
+    ext_url=$( curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.name == "'"$cluster"'") | .public_url' )
+    printf "Creating Kubeconfig for '%s' (url: %s) cluster with external url at '%s'\n" "$cluster" "$ext_url" "$filepath"
+
+    kind get kubeconfig --name "$cluster" | \
+        sed 's/server: .*$/server: '$( echo "$ext_url" | sed 's/https:\/\//http:\\\/\\\//g' )'/' > "$filepath"
+}
+
 main()
 {
     set -e
@@ -426,12 +450,15 @@ main()
         --kubeconfig "$KUBECONFIG" &> /dev/null &
 
     worker_port=8002
-    printf "Exposing Worker's Kubernetes API Server at localhost:%s" "$worker_port"
-    kubectl proxy --disable-filter=true --port="$worker_port" --kubeconfig "$KUBECONFIG" --context "$CLUSTER_MAIN_CONTEXT" &> /dev/null &
+    printf "Exposing Worker's Kubernetes API Server at localhost:%s\n" "$worker_port"
+    kubectl proxy --disable-filter=true --port="$worker_port" --kubeconfig "$KUBECONFIG" --context "$CLUSTER_WORKER_CONTEXT" &> /dev/null &
 
-    printf "Exposed services"
+    printf "Exposed services via ngrok\n"
     curl -s http://localhost:4040/api/tunnels | \
         jq '["NAME","PUBLIC URL"], ["------","------------------------------"], (.tunnels[] | [ .name, .public_url ]) | @tsv' -r
+
+    bake_external_kubeconfig "$CLUSTER_MAIN"
+    bake_external_kubeconfig "$CLUSTER_WORKER"
 }
 
 main

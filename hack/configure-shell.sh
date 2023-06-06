@@ -10,6 +10,13 @@ if [ -z "$SKIP_BITWARDEN" ] || [ "$SKIP_BITWARDEN" = "false" ]; then
     if command -v bw > /dev/null && [ -z "$BW_SESSION" ]; then
         export BW_SESSION=$(bw unlock --raw)
     else
+        [ "$( bw status | jq -r '.status' )" = "locked" ] && BW_SESSION=$( bw unlock --raw )
         export BW_SESSION=$BW_SESSION
     fi
 fi
+
+print_primaza_urls()
+{
+    curl -s http://localhost:4040/api/tunnels | \
+        jq '["NAME","PUBLIC URL"], ["------","------------------------------"], (.tunnels[] | [ .name, .public_url ]) | @tsv' -r
+}

@@ -1,5 +1,9 @@
 .PHONY: all
-all: setup
+all: setup run-all-demos
+	@:
+
+.PHONY: run-all-demos
+run-all-demos: build
 	@./bin/main -0 -a -t 0 -i
 	@./bin/main -1 -a -t 0 -i
 	@./bin/main -2 -a -t 0 -i
