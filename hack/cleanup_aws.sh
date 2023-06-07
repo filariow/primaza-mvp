@@ -7,17 +7,20 @@
 ACK_SYSTEM_NAMESPACE="services"
 AWS_RDS_DBINSTANCE_NAME="rds-primaza-demo-mvp-catalog"
 AWS_SC_PROVPRODUCT_NAME="primaza-demo-orders"
+AWS_RDS_DB_REGION="eu-west-3"
 
 
 delete_aws_rds()
 {
     [ "$(aws rds describe-db-instances \
             --filters 'Name=db-instance-id,Values="'"$AWS_RDS_DBINSTANCE_NAME"'"' \
+            --region "$AWS_RDS_DB_REGION" \
             --no-cli-pager | jq '.DBInstances | length')" != "0" ] && \
     {
         echo "deleting $AWS_RDS_DBINSTANCE_NAME"
         aws rds delete-db-instance \
             --db-instance-identifier "$AWS_RDS_DBINSTANCE_NAME" \
+            --region "$AWS_RDS_DB_REGION" \
             --skip-final-snapshot \
             --no-cli-pager
     }

@@ -8,6 +8,8 @@ run-all-demos: build
 	@./bin/main -1 -a -t 0 -i
 	@./bin/main -2 -a -t 0 -i
 	@./bin/main -3 -a -t 0 -i
+	@curl -s http://localhost:4040/api/tunnels | \
+        jq '["NAME","PUBLIC URL"], ["------","------------------------------"], (.tunnels[] | [ .name, .public_url ]) | @tsv' -r
 
 binfolder:
 	@mkdir -p ./bin

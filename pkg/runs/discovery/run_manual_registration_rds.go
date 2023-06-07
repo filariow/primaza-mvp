@@ -10,6 +10,7 @@ import (
 const (
 	rdsName        = ""
 	rdsPasswordEnv = "AWS_RDS_DB_PASSWORD"
+	rdsRegion      = "eu-west-3"
 )
 
 func manualRegistrationRDSRunSetup() error {
@@ -27,13 +28,15 @@ func ManualRegistrationRDSRun() *demo.Run {
 		demo.S("We already have a AWS RDS Postgres DBInstance"),
 		demo.S("aws rds describe-db-instances ",
 			`--filters 'Name=db-instance-id,Values="rds-primaza-demo-mvp-catalog"'`,
+			fmt.Sprintf("--region '%s'", rdsRegion),
 			"--query 'DBInstances[0].{Identifier: DBInstanceIdentifier, Class: DBInstanceClass, Engine: Engine, Status: DBInstanceStatus, MasterUsername: MasterUsername, Endpoint: Endpoint, DBInstanceArn: DBInstanceArn}'",
 			"--no-cli-pager "))
 
 	r.Step(
 		demo.S("Create a RegisteredService for the DBInstance"),
-		demo.S(`db=$(aws rds describe-db-instances \
+		demo.S(fmt.Sprintf(`db=$(aws rds describe-db-instances \
 	--filters 'Name=db-instance-id,Values="rds-primaza-demo-mvp-catalog"' \
+	--region "%s" \
 	--query 'DBInstances[0].{MasterUsername: MasterUsername, Endpoint: Endpoint}' \
 	--no-cli-pager)
 
@@ -79,7 +82,7 @@ spec:
       name: rds-credentials
       key: username
 EOF
-`))
+`, rdsRegion)))
 
 	return r
 }

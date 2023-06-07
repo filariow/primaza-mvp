@@ -4,6 +4,9 @@
 
 set -e
 
+LOCAL_VARIABLES_FILE="setup-local-vars.sh"
+[ -s "$LOCAL_VARIABLES_FILE" ] && source "$LOCAL_VARIABLES_FILE"
+
 [ -z "$AWS_RDS_DB_PASSWORD" ] && echo "Please set the AWS_RDS_DB_PASSWORD Environment Variable" && exit 1
 
 # Constants
@@ -23,8 +26,9 @@ ACK_SYSTEM_NAMESPACE="services"
 AWS_REGION="us-east-2"
 AWS_RDS_DB_NAME="postgres"
 AWS_RDS_DBINSTANCE_NAME="rds-primaza-demo-mvp-catalog"
+AWS_RDS_DB_REGION="eu-west-3"
 AWS_RDS_DB_USERNAME="awsuser"
-AWS_RDS_DB_SIZE="db.t3.small"
+AWS_RDS_DB_SIZE="db.t4g.small"
 AWS_RDS_DB_ENGINE="postgres"
 
 ## ARGOCD
@@ -39,6 +43,7 @@ NGROK_BASE_CONFIG_PATH="$HOME/.config/ngrok/ngrok.yml"
 
 [ -z "$SKIP_BITWARDEN" ] && SKIP_BITWARDEN="false"
 [ -z "$SKIP_AWS" ] && SKIP_AWS="false"
+
 
 
 build_and_load_demo_app_images()
@@ -132,17 +137,20 @@ configure_worker_cluster()
         install_ack_controller \
           "sqs" \
           "$( curl -sL https://api.github.com/repos/aws-controllers-k8s/sqs-controller/releases/latest | grep '"tag_name":' | cut -d'"' -f4 | tr -d "v" )"
-        # install_ack_controller \
-        #   "iam" \
-        #   "$(curl -sL https://api.github.com/repos/aws-controllers-k8s/iam-controller/releases/latest | grep '"tag_name":' | cut -d'"' -f4)"
     }
 
-    build_and_load_demo_app_images
-    install_and_configure_argocd
+    # install ArgoCD and NGINX Ingress
+    install_argocd
     install_and_configure_nginx_ingress
+
+    # pre-populate kind cache with images from host (reduce bandwidth consumption during live demo)
+    build_and_load_demo_app_images
+
+    # defer ArgoCD configuration for performance reasons
+    configure_argocd
 }
 
-install_and_configure_argocd()
+install_argocd()
 {
     # install ArgoCD
     kubectl create namespace applications \
@@ -163,7 +171,10 @@ install_and_configure_argocd()
         --namespace "$ARGOCD_NAMESPACE" \
         --context "$CLUSTER_WORKER_CONTEXT" \
         --kubeconfig "$KUBECONFIG"
+}
 
+configure_argocd()
+{
     ARGO_SECRET=argocd-initial-admin-secret
     echo "waiting for secret $ARGO_SECRET to be created..."
     until kubectl get secrets \
@@ -234,14 +245,10 @@ data:
           return hs
     primaza.io/ServiceClaim:
         health.lua: |
-          hs = {}
-          if obj.status ~= nil then
-            if obj.status.state == "Resolved" then
-              hs.status = "Healthy"
-              hs.message = "Bound RegisteredService: " .. obj.status.registeredService
-            else
-              hs.status = "Progressing"
-            end
+          hs = { status="Progressing" }
+          if obj.status ~= nil and obj.status.state == "Resolved" then
+            hs.status = "Healthy"
+            hs.message = "Bound RegisteredService: " .. obj.status.registeredService
           end
           return hs
 EOF
@@ -324,6 +331,7 @@ create_aws_rds()
 
     if [ "$(aws rds describe-db-instances \
             --filters 'Name=db-instance-id,Values="'"$AWS_RDS_DBINSTANCE_NAME"'"' \
+            --region "$AWS_RDS_DB_REGION" \
             --no-cli-pager | jq '.DBInstances | length')" = "0" ]; then
         aws rds create-db-instance \
             --db-instance-identifier "$AWS_RDS_DBINSTANCE_NAME" \
@@ -333,20 +341,24 @@ create_aws_rds()
             --master-user-password "$AWS_RDS_DB_PASSWORD" \
             --master-username "$AWS_RDS_DB_USERNAME" \
             --allocated-storage 20 \
+            --region "$AWS_RDS_DB_REGION" \
             --publicly-accessible \
             --no-cli-pager
     else
         aws rds modify-db-instance \
             --db-instance-identifier "$AWS_RDS_DBINSTANCE_NAME" \
             --master-user-password "$AWS_RDS_DB_PASSWORD" \
+            --region "$AWS_RDS_DB_REGION" \
             --no-cli-pager
     fi
 
     group_id=$( aws rds describe-db-instances \
         --filters 'Name=db-instance-id,Values="'"$AWS_RDS_DBINSTANCE_NAME"'"' \
+        --region "$AWS_RDS_DB_REGION" \
         --no-cli-pager | jq -r '.DBInstances[0].VpcSecurityGroups[0].VpcSecurityGroupId' )
     exist_inbound_rule=$( aws ec2 describe-security-group-rules \
-        --filter 'Name="group-id",Values="'"$group_id"'"' | \
+        --filter 'Name="group-id",Values="'"$group_id"'"' \
+        --region "$AWS_RDS_DB_REGION" | \
         jq '[.SecurityGroupRules[] | select(.ToPort == 5432 and .CidrIpv4 == "0.0.0.0/0")] | length' )
 
     if [ "$exist_inbound_rule" == "0" ]
@@ -356,6 +368,7 @@ create_aws_rds()
             --protocol "tcp" \
             --port "5432" \
             --cidr "0.0.0.0/0" \
+            --region "$AWS_RDS_DB_REGION" \
             --no-cli-pager
     fi
 }
@@ -425,9 +438,22 @@ main()
         ps
     }
 
-    argocd_password=$(argocd admin initial-password --namespace "$ARGOCD_NAMESPACE" \
-        --kube-context "$CLUSTER_WORKER_CONTEXT" \
-        --kubeconfig "$KUBECONFIG" | head -n 1)
+    argocd_password=$( argocd admin initial-password \
+            --namespace "$ARGOCD_NAMESPACE" \
+            --kube-context "$CLUSTER_WORKER_CONTEXT" \
+            --kubeconfig "$KUBECONFIG" | head -n 1 )
+
+    if [ -n "$ARGOCD_PASSWORD" ]; then
+        KUBECONFIG=$KUBECONFIG argocd account update-password \
+            --account "admin" \
+            --new-password "$ARGOCD_PASSWORD" \
+            --current-password "$argocd_password" \
+            --port-forward --port-forward-namespace "$ARGOCD_NAMESPACE" --grpc-web \
+            --insecure \
+            --kube-context "$CLUSTER_WORKER_CONTEXT"
+    else
+        ARGOCD_PASSWORD="$argocd_password"
+    fi
 
     [ "$SKIP_BITWARDEN" = "false" ] && {
         argocd_uri=$( curl -s http://localhost:4040/api/tunnels | jq '.tunnels[] | select(.name == "worker") | .public_url' -r )
@@ -435,7 +461,7 @@ main()
         argocd_sec_id=$( echo "$argocd_sec" | jq -r '.id' )
         [ -n "$argocd_sec_id" ] && \
                 echo "$argocd_sec" | \
-                    jq --arg v "$argocd_password" '.login.password=$v' | \
+                    jq --arg v "$ARGOCD_PASSWORD" '.login.password=$v' | \
                     jq --arg v "$argocd_uri" '.login.uris[1].uri=$v' | \
                     bw encode | \
                     bw edit item "$argocd_sec_id" --session "$BW_SESSION"
