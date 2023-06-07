@@ -35,7 +35,7 @@ AWS_RDS_DB_ENGINE="postgres"
 ARGOCD_NAMESPACE="$APPLICATION_NAMESPACE"
 ARGOCD_WATCHED_REPO="https://github.com/primaza/demo-mvp.git"
 ARGOCD_WATCHED_REPO_FOLDER="config/claiming/outer-loop"
-ARGOCD_VERSION="v2.7.3"
+ARGOCD_VERSION="v2.7.4"
 
 ## NGROK
 NGROK_BASE_CONFIG_PATH="$HOME/.config/ngrok/ngrok.yml"
@@ -238,19 +238,26 @@ EOF
         --patch-file <( cat << EOF
 data:
   resource.customizations: |
-    networking.k8s.io/Ingress:
-        health.lua: |
-          hs = {}
-          hs.status = "Healthy"
-          return hs
     primaza.io/ServiceClaim:
-        health.lua: |
-          hs = { status="Progressing" }
-          if obj.status ~= nil and obj.status.state == "Resolved" then
-            hs.status = "Healthy"
-            hs.message = "Bound RegisteredService: " .. obj.status.registeredService
-          end
+       health.lua: |
+        hs = {}
+        hs.status = "Progressing"
+        hs.message = ""
+
+        if obj == nil or obj.status == nil then
           return hs
+        end
+
+        if obj.status.state == "Resolved" then
+          hs.status = "Healthy"
+          hs.message = "Bound RegisteredService: " .. obj.status.registeredService
+        end
+        return hs
+    networking.k8s.io/Ingress:
+       health.lua: |
+        hs = {}
+        hs.status = "healthy"
+        return hs
 EOF
         ) \
         --namespace "$ARGOCD_NAMESPACE" \
