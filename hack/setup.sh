@@ -397,7 +397,7 @@ main()
     set -e
     export PATH=./bin:$PATH
 
-    check_dependencies "docker" "kubectl" "kind" "kustomize" "ngrok"
+    check_dependencies "docker" "kubectl" "kind" "kustomize" "ngrok" "tmux"
     [ "$SKIP_AWS" = "false" ] && check_dependencies "aws"
     [ "$SKIP_BITWARDEN" = "false" ] && check_dependencies "bw"
 
@@ -424,7 +424,7 @@ main()
     wait_rollouts
 
     printf "tunneling with ngrok"
-    ngrok start --all --config hack/ngrok.yml --config "$NGROK_BASE_CONFIG_PATH" &> /dev/null &
+    tmux split-window -h "ngrok start --all --config hack/ngrok.yml --config $NGROK_BASE_CONFIG_PATH"
 
     # Configure AWS to local cluster communication
     [ "$SKIP_AWS" = "false" ] && {
