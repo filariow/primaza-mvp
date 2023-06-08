@@ -20,19 +20,19 @@ build: binfolder
 
 .PHONY: run-env-setup
 run-env-setup: build primazactl
-	./bin/main --env-setup -a -t 3s -i
+	@./bin/main --env-setup -a -t 3s -i
 
 .PHONY: run-manual-registration
 run-manual-registration: build
-	./bin/main --manual-registration-rds
+	@./bin/main --manual-registration-rds
 
 .PHONY: run-discovery-sqs
 run-discovery-sqs: build
-	./bin/main --discovery-sqs
+	@./bin/main --discovery-sqs
 
 .PHONY: run-aws-service-catalog
 run-aws-service-catalog: build
-	./bin/main --aws-service-catalog -i
+	@./bin/main --aws-service-catalog -i
 
 .PHONY: local-manifests
 local-manifests:
@@ -60,6 +60,7 @@ setup: build primazactl
 .PHONY: clean
 clean:
 	./hack/cleanup_aws.sh
+	kind delete clusters main worker
 
 .PHONY: book
 book:
