@@ -19,8 +19,8 @@ build: binfolder
 	@go build -o ./bin/main cmd/main.go
 
 .PHONY: run-env-setup
-run-env-setup: build primazactl
-	@./bin/main --env-setup -a -t 3s -i
+run-env-setup: build
+	@./bin/main --env-setup -a -t 5s -i
 
 .PHONY: run-manual-registration
 run-manual-registration: build
@@ -65,3 +65,7 @@ clean:
 .PHONY: book
 book:
 	@(cd docs && mdbook build)
+
+.PHONY: lint-ephemeral
+lint-ephemeral:
+	shellcheck hack/setup-ephemeral.sh -P . -x
