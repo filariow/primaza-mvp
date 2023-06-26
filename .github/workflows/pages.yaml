@@ -37,7 +37,7 @@ jobs:
         with:
           mdbook-version: 'latest'
       - name: Build book
-        run: cd docs && mdbook build
+        run: cd docs/mdbook && mdbook build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:

@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  name: demo-app-backend
+  namespace: demo-app
+spec:
+  ingressClassName: nginx-prod
+  rules:
+  - host: "primaza-mvp.ngrok.dev"
+    http:
+      paths:
+      - path: /api/catalog(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: demo-app-catalog-prod
+            port:
+              number: 8080
+      - path: /api/orders(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: demo-app-orders-prod
+            port:
+              number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  name: demo-app-frontend
+  namespace: demo-app
+spec:
+  ingressClassName: nginx-prod
+  rules:
+  - host: "primaza-mvp.ngrok.dev"
+    http:
+      paths:
+      - path: /(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: demo-app-frontend-prod
+            port:
+              number: 8080

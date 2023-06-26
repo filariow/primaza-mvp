@@ -1,0 +1,23 @@
+apiVersion: primaza.io/v1alpha1
+kind: ServiceClaim
+metadata:
+  name: demo-app-orders-dynamodb-prod
+  namespace: demo-app
+spec:
+  serviceClassIdentity:
+  - name: type
+    value: dynamodb
+  - name: provider
+    value: aws
+  serviceEndpointDefinitionKeys:
+  - region
+  - tableName
+  - access_key_id
+  - secret_access_key
+  environmentTag: prod
+  application:
+    kind: Deployment
+    apiVersion: apps/v1
+    selector:
+      matchLabels:
+        app: demo-app-orders-prod

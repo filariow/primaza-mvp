@@ -1,0 +1,26 @@
+apiVersion: primaza.io/v1alpha1
+kind: ServiceClaim
+metadata:
+  name: demo-app-catalog-rds-prod
+  namespace: demo-app
+spec:
+  serviceClassIdentity:
+  - name: type
+    value: rds
+  - name: engine
+    value: postgres
+  - name: provider
+    value: aws
+  serviceEndpointDefinitionKeys:
+  - host
+  - port
+  - password
+  - username
+  - database
+  environmentTag: prod
+  application:
+    kind: Deployment
+    apiVersion: apps/v1
+    selector:
+      matchLabels:
+        app: demo-app-catalog-prod

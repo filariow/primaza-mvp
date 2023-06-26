@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app-orders-prod
+  namespace: demo-app
+  labels:
+    app: demo-app-orders-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-app-orders-prod
+  template:
+    metadata:
+      labels:
+        app: demo-app-orders-prod
+    spec:
+      initContainers:
+      - name: demo-app-orders-init
+        image: demo-app/orders-init:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: AWS_PROVIDER
+          value: demo-app-orders-dynamodb-prod
+        - name: DYNAMODB_PROVIDER
+          value: demo-app-orders-dynamodb-prod
+        - name: SERVICE_BINDING_ROOT
+          value: /bindings
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+      containers:
+      - name: demo-app-orders-prod
+        image: demo-app/orders:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: AWS_PROVIDER
+          value: demo-app-orders-dynamodb-prod
+        - name: DYNAMODB_PROVIDER
+          value: demo-app-orders-dynamodb-prod
+        - name: SERVICE_BINDING_ROOT
+          value: /bindings
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-app-orders-prod
+  namespace: demo-app
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: demo-app-orders-prod
+
