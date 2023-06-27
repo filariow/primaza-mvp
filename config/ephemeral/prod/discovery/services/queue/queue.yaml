@@ -1,7 +1,7 @@
 apiVersion: sqs.services.k8s.aws/v1alpha1
 kind: Queue
 metadata:
-  name: sqs-orders
+  name: sqs-orders-prod
   namespace: services-prod
 spec:
   queueName: orders-prod

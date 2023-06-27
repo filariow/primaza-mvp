@@ -8,6 +8,8 @@ LOCAL_VARIABLES_FILE="setup-local-vars.sh"
 [ -s "$LOCAL_VARIABLES_FILE" ] && source "./setup-local-vars.sh"
 
 [ -z "$AWS_RDS_PROD_DB_PASSWORD" ] && echo "Please set the AWS_RDS_PROD_DB_PASSWORD Environment Variable" && exit 1
+[ -z "$AWS_RDS_TEST_DB_PASSWORD" ] && echo "Please set the AWS_RDS_TEST_DB_PASSWORD Environment Variable" && exit 1
+
 
 ## Defaulted inputs
 [ -z "$KUBECONFIG" ] && KUBECONFIG="/tmp/kc-mvp-primaza"
@@ -51,13 +53,14 @@ AWS_RDS_TEST_DB_ENGINE="postgres"
 
 ## ARGOCD
 ARGOCD_WATCHED_REPO="https://github.com/filariow/primaza-mvp.git"
-ARGOCD_WATCHED_REPO_FOLDER_PROD="config/claiming/ephemeral/prod"
-ARGOCD_WATCHED_REPO_FOLDER_TEST="config/claiming/ephemeral/test"
+ARGOCD_WATCHED_REPO_FOLDER_PROD="config/ephemeral/prod/claiming"
+ARGOCD_WATCHED_REPO_FOLDER_TEST="config/ephemeral/test/claiming"
 ARGOCD_VERSION="v2.7.4"
 ARGOCD_PORT_PROD="8090"
 ARGOCD_PORT_TEST="9000"
 
 ## NGROK
+NGROK_LOCAL_CONFIG_PATH="./hack/ngrok-ephemeral.yml"
 NGROK_BASE_CONFIG_PATH="$HOME/.config/ngrok/ngrok.yml"
 
 
@@ -212,7 +215,7 @@ bake_external_kubeconfig()
 # Main Cluster
 create_main_cluster()
 {
-    kind create cluster --name "$1" --kubeconfig "$2"
+    kind create cluster --name "$1" --kubeconfig "$2" # --image "kindest/node:v1.26.3"
 
     ## install cert-manager
     install_cert_manager "$2" "$3"
@@ -222,9 +225,10 @@ create_main_cluster()
 
 configure_main_cluster()
 (
-    docker tag ghcr.io/primaza/primaza:latest ghcr.io/primaza/primaza:latestknown || true
+    # docker tag ghcr.io/primaza/primaza:latest ghcr.io/primaza/primaza:latestknown || true
     docker rmi ghcr.io/primaza/primaza:latest || true
-    docker pull ghcr.io/primaza/primaza:latest
+    docker pull ghcr.io/primaza/primaza:v0.1.0
+    docker tag ghcr.io/primaza/primaza:v0.1.0 ghcr.io/primaza/primaza:latest || true
     kind load docker-image ghcr.io/primaza/primaza:latest --name "$CLUSTER_MAIN"
 )
 
@@ -236,6 +240,7 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
+  # image: kindest/node:v1.26.3
   # port forward 80 on the host to 80 on this node
   extraPortMappings:
   - containerPort: 32080
@@ -255,14 +260,17 @@ EOF
 
 configure_worker_cluster()
 {
-    docker tag ghcr.io/primaza/primaza-agentapp:latest ghcr.io/primaza/primaza-agentapp:latestknown || true
-    docker tag ghcr.io/primaza/primaza-agentsvc:latest ghcr.io/primaza/primaza-agentsvc:latestknown || true
+    # docker tag ghcr.io/primaza/primaza-agentapp:latest ghcr.io/primaza/primaza-agentapp:latestknown || true
+    # docker tag ghcr.io/primaza/primaza-agentsvc:latest ghcr.io/primaza/primaza-agentsvc:latestknown || true
 
     docker rmi ghcr.io/primaza/primaza-agentapp:latest || true
     docker rmi ghcr.io/primaza/primaza-agentsvc:latest || true
 
-    docker pull ghcr.io/primaza/primaza-agentapp:latest
-    docker pull ghcr.io/primaza/primaza-agentsvc:latest
+    docker pull ghcr.io/primaza/primaza-agentapp:v0.1.0
+    docker pull ghcr.io/primaza/primaza-agentsvc:v0.1.0
+
+    docker tag ghcr.io/primaza/primaza-agentapp:v0.1.0 ghcr.io/primaza/primaza-agentapp:latest || true
+    docker tag ghcr.io/primaza/primaza-agentsvc:v0.1.0 ghcr.io/primaza/primaza-agentsvc:latest || true
 
     kind load docker-image ghcr.io/primaza/primaza-agentapp:latest --name "$CLUSTER_WORKER"
     kind load docker-image ghcr.io/primaza/primaza-agentsvc:latest --name "$CLUSTER_WORKER"
@@ -330,7 +338,7 @@ create_application_namespace()
     install_and_configure_nginx_ingress "$1" "$4" "$5" "$6"
 
     # defer ArgoCD configuration for performance reasons
-    configure_argocd "$1" "$2" "$3"
+    configure_argocd "$1" "$2" "$3" "$4"
 }
 
 install_argocd()
@@ -357,6 +365,7 @@ configure_argocd()
     NAMESPACE="$1"
     ARGOCD_PORT="$2"
     ARGOCD_WATCHED_REPO_FOLDER="$3"
+    ARGOCD_APP="demo-app-outer-loop-$4"
 
     echo "waiting for secret $ARGO_SECRET to be created..."
     until kubectl get secrets \
@@ -391,7 +400,7 @@ configure_argocd()
     done
 
 
-    until KUBECONFIG=$KUBECONFIG argocd app create demo-app-outer-loop \
+    until KUBECONFIG=$KUBECONFIG argocd app create "$ARGOCD_APP" \
         --repo "$ARGOCD_WATCHED_REPO" \
         --path "$ARGOCD_WATCHED_REPO_FOLDER" \
         --dest-server "https://kubernetes.default.svc" \
@@ -501,6 +510,29 @@ install_and_configure_nginx_ingress()
         --kubeconfig "$KUBECONFIG"
 }
 
+## Setup Primaza environment
+setup_primaza_environment()
+{
+    make ephemeral-run-setup-env
+
+    kubectl delete \
+        validatingwebhookconfigurations.admissionregistration.k8s.io \
+        validating-webhook-configuration \
+        --kubeconfig "$KUBECONFIG" \
+        --context "$CLUSTER_WORKER_CONTEXT"
+
+    make ephemeral-run-services-demos
+
+    NAMESPACE="applications-prod"
+    ARGOCD_APP="demo-app-outer-loop-prod"
+    until KUBECONFIG=$KUBECONFIG argocd app sync "$ARGOCD_APP" \
+        --kube-context "$CLUSTER_WORKER_CONTEXT" \
+        --port-forward --port-forward-namespace "$NAMESPACE" --grpc-web \
+        --insecure; do
+        sleep 5
+    done
+}
+
 # Main
 main()
 {
@@ -523,7 +555,7 @@ main()
     kind delete clusters "$CLUSTER_MAIN" "$CLUSTER_WORKER"
 
     # build dependencies
-    make primazactl
+    # make primazactl
 
     # create AWS RDS if not existing
     [ "$SKIP_AWS" = "false" ] && create_aws_rds_prod && create_aws_rds_test
@@ -553,8 +585,8 @@ main()
 
     wait_rollouts
 
-    printf "tunneling with ngrok"
-    tmux split-window -h "ngrok start --all --config hack/ngrok.yml --config $NGROK_BASE_CONFIG_PATH"
+    printf "tunneling with ngrok\n"
+    tmux split-window -h "ngrok start --all --config $NGROK_LOCAL_CONFIG_PATH --config $NGROK_BASE_CONFIG_PATH"
 
     # Configure AWS to local cluster communication
     [ "$SKIP_AWS" = "false" ] && {
@@ -585,6 +617,8 @@ main()
 
     bake_external_kubeconfig "$CLUSTER_MAIN"
     bake_external_kubeconfig "$CLUSTER_WORKER"
+
+    setup_primaza_environment
 }
 
 main

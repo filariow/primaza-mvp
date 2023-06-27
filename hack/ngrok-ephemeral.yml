@@ -12,7 +12,6 @@ tunnels:
   eshop-prod:
     addr: 80
     proto: http
-    hostname: primaza-mvp.ngrok.dev
   argocd-test:
     addr: https://localhost:9000
     proto: http

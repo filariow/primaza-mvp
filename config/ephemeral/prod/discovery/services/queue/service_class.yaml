@@ -4,7 +4,9 @@ metadata:
   name: aws-sqs-queue
   namespace: primaza-mytenant
 spec:
-  constraints: {}
+  constraints:
+    environments:
+    - "prod"
   resource:
     apiVersion: sqs.services.k8s.aws/v1alpha1
     kind: Queue

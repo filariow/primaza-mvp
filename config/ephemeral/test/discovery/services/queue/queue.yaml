@@ -2,7 +2,7 @@ apiVersion: sqs.services.k8s.aws/v1alpha1
 kind: Queue
 metadata:
   namespace: services-test
-  name: sqs-orders
+  name: sqs-orders-test
 spec:
   queueName: orders-test
   tags:
