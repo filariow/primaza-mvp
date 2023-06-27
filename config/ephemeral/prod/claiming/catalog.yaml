@@ -23,11 +23,11 @@ spec:
         - name: SERVICE_BINDING_ROOT
           value: /bindings
         - name: RDS_PROVIDER
-          value: demo-app-catalog-rds
+          value: demo-app-catalog-rds-prod
         - name: AWS_PROVIDER
-          value: demo-app-catalog-sqs
+          value: demo-app-catalog-sqs-prod
         - name: SQS_PROVIDER
-          value: demo-app-catalog-sqs
+          value: demo-app-catalog-sqs-prod
         resources:
           limits:
             cpu: 100m
@@ -43,11 +43,11 @@ spec:
         - name: SERVICE_BINDING_ROOT
           value: /bindings
         - name: RDS_PROVIDER
-          value: demo-app-catalog-rds
+          value: demo-app-catalog-rds-prod
         - name: AWS_PROVIDER
-          value: demo-app-catalog-sqs
+          value: demo-app-catalog-sqs-prod
         - name: SQS_PROVIDER
-          value: demo-app-catalog-sqs
+          value: demo-app-catalog-sqs-prod
         resources:
           limits:
             cpu: 100m
