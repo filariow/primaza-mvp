@@ -1,0 +1,37 @@
+apiVersion: primaza.io/v1alpha1
+kind: ServiceClass
+metadata:
+  name: aws-sqs-queue
+  namespace: primaza-mytenant
+spec:
+  constraints: {}
+  resource:
+    apiVersion: sqs.services.k8s.aws/v1alpha1
+    kind: Queue
+    serviceEndpointDefinitionMappings:
+      secretRefFields:
+      - name: access_key_id
+        secretName:
+          jsonPath: .metadata.name
+        secretKey:
+          constant: AWS_ACCESS_KEY_ID
+      - name: secret_access_key
+        secretName:
+          jsonPath: .metadata.name
+        secretKey:
+          constant: AWS_SECRET_ACCESS_KEY
+      resourceFields:
+      - name: url
+        jsonPath: .status.queueURL
+        secret: false
+      - name: queueName
+        jsonPath: .spec.queueName
+        secret: false
+      - name: region
+        jsonPath: .status.ackResourceMetadata.region
+        secret: false
+  serviceClassIdentity:
+  - name: type
+    value: sqs
+  - name: provider
+    value: aws

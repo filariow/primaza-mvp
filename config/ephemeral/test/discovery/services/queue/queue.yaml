@@ -1,0 +1,11 @@
+apiVersion: sqs.services.k8s.aws/v1alpha1
+kind: Queue
+metadata:
+  namespace: services-test
+  name: sqs-orders
+spec:
+  queueName: orders-test
+  tags:
+    env: test
+    project: demo-app
+    scope: primaza-ephemeral-demo
