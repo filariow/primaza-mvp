@@ -1,7 +1,7 @@
 apiVersion: primaza.io/v1alpha1
 kind: ServiceClaim
 metadata:
-  name: demo-app-catalog-sqs
+  name: demo-app-catalog-sqs-test
   namespace: demo-app
 spec:
   serviceClassIdentity:

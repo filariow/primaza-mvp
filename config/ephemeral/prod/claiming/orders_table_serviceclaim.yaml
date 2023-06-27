@@ -1,7 +1,7 @@
 apiVersion: primaza.io/v1alpha1
 kind: ServiceClaim
 metadata:
-  name: demo-app-orders-dynamodb
+  name: demo-app-orders-dynamodb-prod
   namespace: demo-app
 spec:
   serviceClassIdentity:

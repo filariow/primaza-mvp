@@ -9,7 +9,8 @@ metadata:
 spec:
   ingressClassName: nginx-prod
   rules:
-  - http:
+  - host: "primaza-mvp.ngrok.dev"
+    http:
       paths:
       - path: /api/catalog(/|$)(.*)
         pathType: Prefix
@@ -37,7 +38,8 @@ metadata:
 spec:
   ingressClassName: nginx-prod
   rules:
-  - http:
+  - host: "primaza-mvp.ngrok.dev"
+    http:
       paths:
       - path: /(.*)
         pathType: Prefix
