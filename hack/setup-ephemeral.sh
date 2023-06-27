@@ -56,8 +56,8 @@ ARGOCD_WATCHED_REPO="https://github.com/filariow/primaza-mvp.git"
 ARGOCD_WATCHED_REPO_FOLDER_PROD="config/ephemeral/prod/claiming"
 ARGOCD_WATCHED_REPO_FOLDER_TEST="config/ephemeral/test/claiming"
 ARGOCD_VERSION="v2.7.4"
-ARGOCD_PORT_PROD="8090"
-ARGOCD_PORT_TEST="9000"
+ARGOCD_PORT_PROD="9000"
+ARGOCD_PORT_TEST="9001"
 
 ## NGROK
 NGROK_LOCAL_CONFIG_PATH="./hack/ngrok-ephemeral.yml"
@@ -525,12 +525,51 @@ setup_primaza_environment()
 
     NAMESPACE="applications-prod"
     ARGOCD_APP="demo-app-outer-loop-prod"
+
+    KUBECONFIG=$KUBECONFIG argocd login \
+        --username "admin" \
+        --password "$ARGOCD_PASSWORD" \
+        --port-forward --port-forward-namespace "$NAMESPACE" --grpc-web \
+        --insecure \
+        --kube-context "$CLUSTER_WORKER_CONTEXT"
+
     until KUBECONFIG=$KUBECONFIG argocd app sync "$ARGOCD_APP" \
         --kube-context "$CLUSTER_WORKER_CONTEXT" \
         --port-forward --port-forward-namespace "$NAMESPACE" --grpc-web \
         --insecure; do
         sleep 5
     done
+
+    kubectl patch configmap argocd-cm \
+        --patch-file <( cat << EOF
+data:
+  dummy: nosense
+  resource.customizations: |
+    primaza.io/ServiceClaim:
+       health.lua: |
+        hs = {}
+        hs.status = "Progressing"
+        hs.message = ""
+
+        if obj == nil or obj.status == nil then
+          return hs
+        end
+
+        if obj.status.state == "Resolved" then
+          hs.status = "Healthy"
+          hs.message = "Bound RegisteredService: " .. obj.status.registeredService
+        end
+        return hs
+    networking.k8s.io/Ingress:
+       health.lua: |
+        hs = {}
+        hs.status = "healthy"
+        return hs
+EOF
+        ) \
+        --namespace "$NAMESPACE" \
+        --context "$CLUSTER_WORKER_CONTEXT" \
+        --kubeconfig "$KUBECONFIG"
 }
 
 # Main
